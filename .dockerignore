@@ -1,0 +1,27 @@
+*.pyc
+*.pyo
+*.mo
+*.db
+*.css.map
+*.egg-info
+*.sql.gz
+.cache
+.project
+.idea
+.pydevproject
+.idea/workspace.xml
+.DS_Store
+.git/
+.sass-cache
+.vagrant/
+__pycache__
+dist
+docs
+env
+logs
+stats
+Dockerfile
+__localcode/
+psycopg2-binary >= 2.9.6,< 2.10
+Django >= 4.2.1,< 4.3
+

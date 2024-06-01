@@ -1,6 +1,25 @@
 from django.db import models
 from utils.rands import slugify_new
 from django.contrib.auth.models import User
+from utils.images import resize_image
+from django_summernote.models import AbstractAttachment
+
+class PostAttachment(AbstractAttachment):
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = self.file.name
+
+        current_file_name = str(self.file.name)
+        super_save = super().save(*args, **kwargs)
+        favicon_changed = False
+        if self.file:
+            favicon_changed = current_file_name != self.file.name
+
+        if favicon_changed:
+            resize_image(self.file, 900)
+
+        return super_save
+
 
 class Tag(models.Model):
     class Meta:
@@ -107,7 +126,19 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify_new(self.title)
-        return super().save(*args, **kwargs)
+
+        current_favicon_name = str(self.cover.name)
+        super_save = super().save(*args, **kwargs)
+        favicon_changed = False
+        if self.cover:
+            favicon_changed = current_favicon_name != self.cover.name
+
+        if favicon_changed:
+            resize_image(self.cover, 900)
+
+        return super_save
+
+    
 
     def __str__(self) -> str:
         return self.title

@@ -49,13 +49,14 @@
       {% endif %}
 
       <p class="single-post-excerpt pb-base">
-        {{ post.content }}
+        {{ post.excerpt | safe}}
       </p>
 
       <div class="separator"></div>
 
-      {% if post.tags.values %}
-        <div class="single-post-content">
+      <div class="single-post-content">
+        {{ post.content | safe }}
+        {% if post.tags.values %}
           <div class="post-tags">
             <span>Tags: </span>
             {% for tag in post.tags.values %}

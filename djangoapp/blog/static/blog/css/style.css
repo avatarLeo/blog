@@ -136,12 +136,17 @@
     font-size: 20px; /* Fallback value */
     font-size: var(--fs-h6);
   }
+
+  .CodeMirror {
+    height: auto !important;
+    font-size: var(s--fs-smlr) !important;
+  }
   
   pre {
     max-width: 100%;
     overflow-x: auto;
     line-height: var(--lh-mono);
-    font-size: var(--fs-sm);
+    font-size: var(--fs-smlr);
   }
   
   pre,

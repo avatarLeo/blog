@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from blog.models import Post
+from blog.models import Post, Page
 from django.core.paginator import Paginator
 from django.db.models import Q
 
@@ -62,8 +62,13 @@ def tag(request, slug):
     )
 
 def page(request, slug):
+    page = Page.objects.filter(is_published=True).filter(slug=slug).first()
+    print(page.title)
     return render(
-       request, 'blog/pages/pages.html'
+       request, 'blog/pages/pages.html',
+       {
+           'page':page
+       }
     )
 
 def search(request):

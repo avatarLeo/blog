@@ -1,3 +1,5 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.shortcuts import render
 from blog.models import Post, Page
 from django.core.paginator import Paginator
@@ -25,23 +27,31 @@ class PostListView(ListView):
         return context
         
 
-    # def get(self, request, *args, **kwargs):
-    #     return render(request, 'blog/pages/index.html')
+class CreatedByListView(PostListView):
 
-def index(request):
-    posts = Post.objects.get_published()
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(created_by__pk=self.kwargs.get('author_pk'))
+    
 
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(
-       request, 'blog/pages/index.html',
-       {
-           'page_obj': page_obj,
-           'page_title': 'Home - '
-       }
-    )
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
+        user = User.objects.filter(pk=self.kwargs.get('author_pk')).first()
+        
+        if user is None:
+            raise Http404
+
+        user_full_name = user.username
+
+        if user.first_name:
+            user_full_name = f'{user.first_name} {user.last_name}'
+
+        page_title = user_full_name + ' post - '
+
+        context['page_title'] = page_title
+
+        return context
 
 def created_by(request, author_pk):
     user = User.objects.filter(pk=author_pk).first()

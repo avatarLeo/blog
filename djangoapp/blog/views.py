@@ -1,7 +1,7 @@
 from typing import Any
 from django.db.models.query import QuerySet
 from django.shortcuts import render
-from blog.models import Post, Page
+from blog.models import Post, Page, Tag
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -53,79 +53,45 @@ class CreatedByListView(PostListView):
 
         return context
 
-def created_by(request, author_pk):
-    user = User.objects.filter(pk=author_pk).first()
-    posts = Post.objects.get_published().filter(created_by__pk=author_pk)
+class CategoryListView(PostListView):
 
-    if user is None:
-        raise Http404
-
-    user_full_name = user.username
-
-    if user.first_name:
-        user_full_name = f'{user.first_name} {user.last_name}'
-
-    page_title = user_full_name + ' post - '
-
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(
-       request, 'blog/pages/index.html',
-       {
-           'page_obj': page_obj,
-           'page_title': page_title,
-       }
-    )
-
-
-def category(request, slug):
-    posts = Post.objects.get_published().filter(category__slug=slug)
-
-
-
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    if len(page_obj) == 0:
-        raise Http404
+    def get_queryset(self) -> QuerySet[Any]:
+        queryset = super().get_queryset()
+        queryset = queryset.filter(category__slug=self.kwargs.get('slug'))
+       
+        if not queryset:
+            raise Http404
+        
+        self._context_temp = queryset[0].category.name
+        
+        return queryset
     
-    page_title = f'{page_obj[0].category.name} - categorias'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Categoria - ' + self._context_temp
+        return context
+
+
+class TagListView(PostListView):
+    allow_empty = False
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(tags__slug=self.kwargs.get('slug'))
+    
+    
+    def get_context_data(self, **kwargs):
+        tag = Tag.objects.filter(slug=self.kwargs.get('slug')).first()
+        context = super().get_context_data(**kwargs)
+        page_title = 'Tag - ' + tag.name
+        print(page_title)
+        context['page_title'] = page_title
+        return context
     
 
-    return render(
-       request, 'blog/pages/index.html',
-       {
-           'page_obj': page_obj,
-           'page_title': page_title,
-       }
-    )
-
-
-def tag(request, slug):
-    posts = Post.objects.get_published().filter(tags__slug=slug)
-
-    paginator = Paginator(posts, PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    if len(page_obj) == 0:
-        raise Http404
-    
-    page_title = f'{page_obj[0].tags.first().name} - tag'
-
-    return render(
-       request, 'blog/pages/index.html',
-       {
-           'page_obj': page_obj,
-           'page_title': page_title,
-       }
-    )
 
 def page(request, slug):
     page = Page.objects.filter(is_published=True).filter(slug=slug).first()
-    print()
+
 
     if page is None:
         raise Http404

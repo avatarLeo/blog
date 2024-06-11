@@ -4,9 +4,29 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
+from django.views.generic.list import ListView
 
 
 PER_PAGE = 9
+
+class PostListView(ListView):
+    model = Post
+    paginate_by = PER_PAGE
+    context_object_name = 'posts'
+    template_name = 'blog/pages/index.html'
+    ordering = '-pk',
+    queryset = Post.objects.get_published()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'page_title': 'Home - '
+        })
+        return context
+        
+
+    # def get(self, request, *args, **kwargs):
+    #     return render(request, 'blog/pages/index.html')
 
 def index(request):
     posts = Post.objects.get_published()

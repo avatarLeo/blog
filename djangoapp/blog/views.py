@@ -5,7 +5,7 @@ from blog.models import Post, Page, Tag
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404, HttpRequest, HttpResponse
-from django.views.generic.list import ListView
+from django.views.generic import ListView, DetailView
 
 
 PER_PAGE = 9
@@ -120,6 +120,27 @@ class SearchListView(PostListView):
         return super().get(request, *args, **kwargs)
     
 
+class PageDetailView(DetailView):
+    context_object_name = 'page'
+    model = Page
+    slug_field = 'slug'
+    allow_empty = False
+    template_name = 'blog/pages/pages.html'
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        page = self.get_object()
+        page_title =  'Página - ' + page.title
+        context.update({
+            'page_title': page_title
+        })
+        return context
+    
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(is_published=True)
+
+    
+
 def page(request, slug):
     page = Page.objects.filter(is_published=True).filter(slug=slug).first()
 
@@ -133,25 +154,6 @@ def page(request, slug):
        request, 'blog/pages/pages.html',
        {
            'page':page,
-           'page_title': page_title,
-       }
-    )
-
-def search(request):
-
-    term = request.GET.get('search', '').strip()
-    posts = Post.objects.get_published().filter(
-        Q(title__icontains=term) |
-        Q(excerpt__icontains=term) |
-        Q(content__icontains=term) 
-        )[:PER_PAGE]
-    
-    page_title = f'{term[:30]} search - '
-
-    return render(
-       request, 'blog/pages/index.html',
-       {
-           'page_obj': posts, 'term': term,
            'page_title': page_title,
        }
     )

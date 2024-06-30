@@ -21,6 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR.parent / 'data' / 'web'
 
 
+#dotenv
+
+load_dotenv(BASE_DIR.parent / 'dotenv_files' / '.env', override=True)
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -34,10 +39,6 @@ ALLOWED_HOSTS = [
     h.strip() for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h.strip()
 ]
 
-
-#dotenv
-
-load_dotenv(BASE_DIR / 'dotenv_files' / '.env', override=True)
 
 
 # Application definition
